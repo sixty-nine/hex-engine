@@ -6,6 +6,8 @@ import {
 import { Vector } from "../Models";
 import { useContext, useUpdate, useEntityTransforms } from "../Hooks";
 
+type Callback = (event: HexMouseEvent) => void;
+
 /** A Mouse event in Hex Engine. */
 export class HexMouseEvent {
   /** The position of the cursor, relative to the current Entity's origin. */
@@ -69,11 +71,11 @@ export default function LowLevelMouse() {
   useType(LowLevelMouse);
 
   const storage = {
-    moveCallbacks: new Set<(event: HexMouseEvent) => void>(),
-    downCallbacks: new Set<(event: HexMouseEvent) => void>(),
-    upCallbacks: new Set<(event: HexMouseEvent) => void>(),
-    outCallbacks: new Set<(event: HexMouseEvent) => void>(),
-    overCallbacks: new Set<(event: HexMouseEvent) => void>(),
+    moveCallbacks: new Set<Callback>(),
+    downCallbacks: new Set<Callback>(),
+    upCallbacks: new Set<Callback>(),
+    outCallbacks: new Set<Callback>(),
+    overCallbacks: new Set<Callback>(),
   };
 
   const context = useContext();
@@ -277,21 +279,21 @@ export default function LowLevelMouse() {
 
   return {
     /** Registers the provided function to be called when the mouse cursor moves. */
-    onMouseMove: (callback: (event: HexMouseEvent) => void) => {
+    onMouseMove: (callback: Callback) => {
       storage.moveCallbacks.add(useCallbackAsCurrent(callback));
     },
     /** Registers the provided function to be called when any button on the mouse is pressed down. */
-    onMouseDown: (callback: (event: HexMouseEvent) => void) => {
+    onMouseDown: (callback: Callback) => {
       storage.downCallbacks.add(useCallbackAsCurrent(callback));
     },
     /** Registers the provided function to be called when any button on the mouse is released. */
-    onMouseUp: (callback: (event: HexMouseEvent) => void) => {
+    onMouseUp: (callback: Callback) => {
       storage.upCallbacks.add(useCallbackAsCurrent(callback));
     },
-    onMouseOut: (callback: (event: HexMouseEvent) => void) => {
+    onMouseOut: (callback: Callback) => {
       storage.outCallbacks.add(useCallbackAsCurrent(callback));
     },
-    onMouseOver: (callback: (event: HexMouseEvent) => void) => {
+    onMouseOver: (callback: Callback) => {
       storage.overCallbacks.add(useCallbackAsCurrent(callback));
     },
   };
