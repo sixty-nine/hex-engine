@@ -107,17 +107,19 @@ export default function LowLevelMouse() {
     mouse4: false,
     mouse5: false,
   });
+  type EventUpdate = {
+    clientX: number;
+    clientY: number;
+    buttons?: number;
+    button?: number;
+  };
+
   function updateEvent({
     clientX,
     clientY,
     buttons = 0,
     button,
-  }: {
-    clientX: number;
-    clientY: number;
-    buttons?: number;
-    button?: number;
-  }) {
+  }: EventUpdate) {
     event.pos = translatePos(clientX, clientY);
     event.delta.mutateInto(event.pos);
     event.delta.subtractMutate(lastPos);
@@ -172,6 +174,15 @@ export default function LowLevelMouse() {
     storage.overCallbacks.forEach((callback) => callback(event));
   };
 
+  const getTouchInfo = (touches: TouchList): EventUpdate | null => {
+    if (touches.length < 1) return null;
+    return {
+      clientX: touches[0].clientX,
+      clientY: touches[0].clientY,
+      button: 0,
+    };
+  };
+
   let isTouching = false;
   const handleTouchStart = (ev: TouchEvent) => {
     ev.preventDefault();
@@ -186,14 +197,12 @@ export default function LowLevelMouse() {
       pendingFirstClickHandlers = [];
     }
 
-    const touches = ev.touches;
-    if (touches.length < 1) return;
-    const { clientX, clientY } = touches[0];
-    const button = 0;
+    const touchInfo = getTouchInfo(ev.touches);
+    if (null === touchInfo) return;
 
     pendingDown = () => {
       pendingDown = null;
-      updateEvent({ clientX, clientY, button });
+      updateEvent(touchInfo);
       storage.downCallbacks.forEach((callback) => callback(event));
     };
 
@@ -201,15 +210,12 @@ export default function LowLevelMouse() {
   };
   const handleTouchMove = (ev: TouchEvent) => {
     ev.preventDefault();
-
-    const touches = ev.touches;
-    if (touches.length < 1) return;
-    const { clientX, clientY } = touches[0];
-    const button = 0;
+    const touchInfo = getTouchInfo(ev.touches);
+    if (null === touchInfo) return;
 
     pendingMove = () => {
       pendingMove = null;
-      updateEvent({ clientX, clientY, button });
+      updateEvent(touchInfo);
       storage.moveCallbacks.forEach((callback) => callback(event));
     };
   };
@@ -218,14 +224,12 @@ export default function LowLevelMouse() {
 
     if (!isTouching) return;
 
-    const touches = ev.changedTouches;
-    if (touches.length < 1) return;
-    const { clientX, clientY } = touches[0];
-    const button = 0;
+    const touchInfo = getTouchInfo(ev.changedTouches);
+    if (null === touchInfo) return;
 
     pendingUp = () => {
       pendingUp = null;
-      updateEvent({ clientX, clientY, button });
+      updateEvent(touchInfo);
       storage.upCallbacks.forEach((callback) => callback(event));
     };
 
